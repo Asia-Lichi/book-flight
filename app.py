@@ -43,15 +43,7 @@ def initdb(drop):
     db.create_all()
     click.echo('Initialized database.')  # 输出提示信息
 
-
-#z在主页视图读取数据库记录
 from flask import render_template
-@app.route('/')
-def index():
-    user = User.query.first()  # 读取用户记录
-    movies = Movie.query.all()  # 读取所有电影记录
-    return render_template('index.html', user=user, movies=movies)
-
 
 #因为有了数据库，我们可以编写一个命令函数把虚拟数据添加到数据库里。
 #创建自定义命令 forge
@@ -80,3 +72,23 @@ def forge():
         db.session.add(movie)
     db.session.commit()
     click.echo('Done.')
+
+""""对于多个模板内都需要使用的变量，我们可以使用  app.context_processor  装
+饰器注册一个模板上下文处理函数，如下所示：
+app.py：模板上下文处理函数"""
+@app.context_processor
+def inject_user():
+    user = User.query.first()
+    return dict(user=user)
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+@app.route('/')
+def index():
+    movies = Movie.query.all()
+    return render_template('index.html', movies=movies)
+
+
+
